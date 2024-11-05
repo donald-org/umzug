@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "start": "tsx src/main"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0"
+  },
+  "dependencies": {
+    "tsx": "^4.19.2"
+  }
+}

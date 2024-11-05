@@ -128,3 +128,12 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+data/input/*
+data/output/users/*
+data/output/threads/*
+data/output/posts/*
+data/output/dms/*
+data/output/urls/*
+data/output/images/*
+data/output/image-data/*
