@@ -1,4 +1,7 @@
 import { readFileSync, writeFileSync, rmSync, readdirSync } from 'fs';
+import './md';
+import { toHtml as bbcodeToHtml, toMd } from './bbcode';
+import { toHtml } from './md';
 
 for (let path of [
   'data/output/users',
@@ -68,7 +71,7 @@ const users: Record<string, User> = {};
 const threads: Thread[] = [];
 const posts: Post[] = [];
 const dms = [];
-const urls = {};
+const urls: { hash: string; url: string }[] = [];
 const images: Record<string, Buffer> = {};
 
 function generateFileId(i: number) {
@@ -168,15 +171,21 @@ function parsePosts(data: unknown[]) {
       };
     }
     const postId = parseInt(post.message_id);
+    const md = toMd(bbcodeToHtml(post.body));
+    const html = toHtml(md);
     posts[postId] = {
       id: numberToId(postId),
       thread: threads[threadId].id,
       author: users[post.user_id]?.name ?? ':-anonymous',
-      md: post.body,
-      html: post.body,
+      md,
+      html: html.html,
       created,
       updated,
     };
+    html.images.forEach(
+      (image) => (images[image.hash] = Buffer.from(image.url, 'utf8'))
+    );
+    html.urls.forEach((url) => urls.push(url));
   });
 }
 
@@ -233,7 +242,6 @@ for (let i = 0; i < posts.length; i++) {
 
 const usersArray = Object.values(users);
 const imagesArray = Object.keys(images);
-const urlsArray = Object.values(urls);
 
 for (let i = 0; i < usersArray.length; i += 100) {
   const chunk = usersArray.slice(i, i + 100);
@@ -279,12 +287,12 @@ for (let i = 0; i < imagesArray.length; i += 100) {
     'utf8'
   );
   chunk.forEach((imageId) =>
-    writeFileSync(`data/output/image-data/${imageId}.webp`, images[imageId])
+    writeFileSync(`data/output/image-data/${imageId}`, images[imageId])
   );
 }
 
-for (let i = 0; i < urlsArray.length; i += 100) {
-  const chunk = urlsArray.slice(i, i + 100);
+for (let i = 0; i < urls.length; i += 100) {
+  const chunk = urls.slice(i, i + 100);
   writeFileSync(
     `data/output/urls/${generateFileId(i / 100)}.json`,
     JSON.stringify(chunk),
